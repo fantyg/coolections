@@ -1,0 +1,28 @@
+{
+  "name": "coolections",
+  "version": "0.1.0",
+  "description": "Coolections is a web application for creation a database of colection",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kamillo1000/coolections.git"
+  },
+  "keywords": [
+    "colections",
+    "cool",
+    "games",
+    "books"
+  ],
+  "author": "kamillo1000",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kamillo1000/coolections/issues"
+  },
+  "homepage": "https://github.com/kamillo1000/coolections#readme",
+  "dependencies": {
+    "express": "^4.14.1"
+  }
+}
