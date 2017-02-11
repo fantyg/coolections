@@ -4,7 +4,8 @@
   "description": "Coolections is a web application for creation a database of colection",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
