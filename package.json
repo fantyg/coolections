@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kamillo1000/coolections.git"
+    "uri": "git+https://github.com/kamillo1000/coolections.git"
   },
   "keywords": [
     "colections",
@@ -20,10 +20,14 @@
   "author": "FantyG",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kamillo1000/coolections/issues"
+    "uri": "https://github.com/kamillo1000/coolections/issues"
   },
   "homepage": "https://github.com/kamillo1000/coolections#readme",
   "dependencies": {
-    "express": "^4.14.1"
+    "body-parser": "^1.16.1",
+    "express": "^4.14.1",
+    "pg": "^6.1.2",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^3.30.2"
   }
 }
