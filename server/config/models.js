@@ -9,20 +9,24 @@ let models = function(Sequelize) {
                 username: {
                     type: Sequelize.STRING,
                     field: 'username',
-                    unique: true
+                    unique: true,
+                    allowNull: false
                 },
                 password: {
                     type: Sequelize.STRING,
-                    field: 'password'
+                    field: 'password',
+                    allowNull: false
                 },
                 name: {
                     type: Sequelize.STRING,
-                    field: 'name'
+                    field: 'name',
+                    allowNull: false
                 },
                 email: {
                     type: Sequelize.STRING,
                     field: 'email',
-                    unique: true
+                    unique: true,
+                    allowNull: false
                 }
             }
         },
@@ -38,6 +42,12 @@ let models = function(Sequelize) {
                         key: 'id',
                         deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
                     }
+                },
+                activationLink: {
+                    type: Sequelize.STRING,
+                    field: 'activation_link',
+                    unique: true,
+                    allowNull: false
                 }
             }
         }

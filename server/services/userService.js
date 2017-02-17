@@ -2,19 +2,32 @@
  * Created by FantyG on 2017-02-11.
  */
 
-var userService = {};
+let userService = {};
 
-userService.create = function (user, connection, table, callback) {
+userService.create = function (user, connection, userTable, unactivatedUserTable, server, callback) {
     console.log("Creation of user.");
     let headers = [{name: 'Content-Type', value: 'application/json'}];
-    this.checkNewUser(user, headers, table, callback, function (right) {
+    this.checkNewUser(user, headers, userTable, callback, function (right) {
         if (right) {
             const hash = require('password-hash');
             user.password = hash.generate(user.password);
-            table.create(user);
-            let message = {message: 'user created'};
-            table.sync();
-            callback(JSON.stringify(message), headers, 200);
+            userTable.create(user);
+            userTable.sync().then(function () {
+                userTable.findOne({where: {username: user.username}}).then(function (user) {
+                    let unactivatedUser = {
+                        userId: user.id
+                    };
+                    console.log('Generating link');
+                    userService.generateActivationLink(unactivatedUserTable).then(function (link) {
+                        unactivatedUser.activationLink = link;
+                        unactivatedUserTable.create(unactivatedUser);
+                        unactivatedUserTable.sync();
+
+                        let message = {message: 'user created'};
+                        callback(JSON.stringify(message), headers, 200);
+                    })
+                })
+            });
         }
     });
 };
@@ -73,6 +86,24 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
             });
         });
     }
+};
+
+userService.generateActivationLink = function (unactivatedUserTable){
+    return new Promise(function (resolve) {
+        const stringGenerator = require('randomstring');
+        function checkLink() {
+            let link = stringGenerator.generate(10);
+            unactivatedUserTable.findOne({where: {activationLink: link}}).then(function (unactivatedUser) {
+                if (!unactivatedUser) {
+                    console.log('Created link: ' + link);
+                    resolve(link);
+                } else {
+                    checkLink();
+                }
+            });
+        }
+        checkLink();
+    });
 };
 
 module.exports = userService;

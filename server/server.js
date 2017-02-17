@@ -38,7 +38,8 @@ server.postUser = function (req, res) {
     }
     /*let body = req.body;*/
     const userService = require('./services/userService');
-    userService.create(req.body, server.connection, server.tables.user, server.response(res));
+    userService.create(req.body, server.connection, server.tables.user,
+        server.tables.unactivatedUser, server.app, server.response(res));
 };
 
 server.routes = [
@@ -49,7 +50,7 @@ server.routes = [
     }
 ];
 
-server.response = function(res) {
+server.response = function (res) {
     return function (message, headers, status) {
         headers = headers || [];
         res.status(status);
@@ -114,12 +115,13 @@ server.setRoutes = function (app) {
 
 server.start = function () {
     const express = require('express');
-    const app = express();
+    server.app = express();
     const bodyParser = require('body-parser');
+    const mailer = require('express-mailer');
     server.connection = new this.Sequelize(
         this.database.uri,
         /*this.database.user,
-        this.database.password,*/
+         this.database.password,*/
         {
             host: this.host,
             dialect: this.database.type,
@@ -133,8 +135,16 @@ server.start = function () {
         }
     );
     this.createModels();
-    app.use(bodyParser.json());
-    this.setRoutes(app);
+    server.app.use(bodyParser.json());
+    mailer.extend(server.app, {
+        from: 'no-replay@coollections.com',
+        host: 'smtp.gmail.com',
+        secureConnection: true,
+        port: 465,
+        transportMethod: 'SMTP',
+        auth: {user: 'surveynokia2016@gmail.com', pass: 'votefortrump2016'}
+    });
+    this.setRoutes(server.app);
 };
 
 module.exports = server;
