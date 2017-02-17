@@ -39,7 +39,7 @@ server.postUser = function (req, res) {
     /*let body = req.body;*/
     const userService = require('./services/userService');
     userService.create(req.body, server.connection, server.tables.user,
-        server.tables.unactivatedUser, server.app, server.response(res));
+        server.tables.unactivatedUser, server, server.response(res));
 };
 
 server.routes = [
@@ -144,6 +144,8 @@ server.start = function () {
         transportMethod: 'SMTP',
         auth: {user: 'surveynokia2016@gmail.com', pass: 'votefortrump2016'}
     });
+    server.app.set('views', __dirname + '\\views');
+    server.app.set('view engine', 'pug');
     this.setRoutes(server.app);
 };
 

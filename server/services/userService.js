@@ -4,6 +4,20 @@
 
 let userService = {};
 
+userService.sendRegistrationEmail = function (user, link, server) {
+    server.app.mailer.send('registrationEmail', {
+        to: user.email,
+        subject: 'Account in CooLLections created!',
+        host: server.host,
+        link: link
+    }, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('Registration email sent.')
+        }
+    })
+}
 userService.create = function (user, connection, userTable, unactivatedUserTable, server, callback) {
     console.log("Creation of user.");
     let headers = [{name: 'Content-Type', value: 'application/json'}];
@@ -22,7 +36,7 @@ userService.create = function (user, connection, userTable, unactivatedUserTable
                         unactivatedUser.activationLink = link;
                         unactivatedUserTable.create(unactivatedUser);
                         unactivatedUserTable.sync();
-
+                        userService.sendRegistrationEmail(user, link, server);
                         let message = {message: 'user created'};
                         callback(JSON.stringify(message), headers, 200);
                     })
