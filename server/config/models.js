@@ -8,7 +8,8 @@ let models = function(Sequelize) {
             columns: {
                 username: {
                     type: Sequelize.STRING,
-                    field: 'username'
+                    field: 'username',
+                    unique: true
                 },
                 password: {
                     type: Sequelize.STRING,
@@ -20,7 +21,23 @@ let models = function(Sequelize) {
                 },
                 email: {
                     type: Sequelize.STRING,
-                    field: 'email'
+                    field: 'email',
+                    unique: true
+                }
+            }
+        },
+        {
+            name: 'unactivatedUser',
+            columns: {
+                userId: {
+                    type: Sequelize.INTEGER,
+                    field: 'user_id',
+                    unique: true,
+                    references: {
+                        model: 'user',
+                        key: 'id',
+                        deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+                    }
                 }
             }
         }

@@ -80,6 +80,9 @@ server.connectionInfo = function () {
 server.createModels = function () {
     console.log('Creating models - connection: ' + this.connection);
     this.models.forEach(function (model) {
+        if (model.references && model.references.model) {
+            model.references.model = server.tables[model.references.model];
+        }
         server.tables[model.name] = server.connection.define(model.name, model.columns, {
             freezeTableName: true
         });
