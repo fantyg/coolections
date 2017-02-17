@@ -9,6 +9,8 @@ userService.create = function (user, connection, table, callback) {
     let headers = [{name: 'Content-Type', value: 'application/json'}];
     this.checkNewUser(user, headers, table, callback, function (right) {
         if (right) {
+            const hash = require('password-hash');
+            user.password = hash.generate(user.password);
             table.create(user);
             let message = {message: 'user created'};
             table.sync();
