@@ -1,0 +1,38 @@
+{
+  "name": "coolections",
+  "version": "0.1.0",
+  "description": "Coolections is a web application for creation a database of colection",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "uri": "git+https://github.com/kamillo1000/coolections.git"
+  },
+  "keywords": [
+    "colections",
+    "cool",
+    "games",
+    "books"
+  ],
+  "author": "FantyG",
+  "license": "ISC",
+  "bugs": {
+    "uri": "https://github.com/kamillo1000/coolections/issues"
+  },
+  "homepage": "https://github.com/kamillo1000/coolections#readme",
+  "dependencies": {
+    "body-parser": "^1.16.1",
+    "express": "^4.14.1",
+    "express-mailer": "^0.3.1",
+    "jade": "^1.11.0",
+    "password-hash": "^1.2.2",
+    "pg": "^6.1.2",
+    "pg-hstore": "^2.3.2",
+    "pug": "^2.0.0-beta11",
+    "randomstring": "^1.1.5",
+    "sequelize": "^3.30.2"
+  }
+}
