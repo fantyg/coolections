@@ -27,6 +27,13 @@ let models = function(Sequelize) {
                     field: 'email',
                     unique: true,
                     allowNull: false
+                },
+                role: {
+                    type: Sequelize.STRING,
+                    field: 'role',
+                    unique: true,
+                    allowNull: false,
+                    defaultValue: 'user'
                 }
             }
         },

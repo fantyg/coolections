@@ -17,7 +17,8 @@ userService.sendRegistrationEmail = function (user, link, server) {
             console.log('Registration email sent.')
         }
     })
-}
+};
+
 userService.create = function (user, connection, userTable, unactivatedUserTable, server, callback) {
     console.log("Creation of user.");
     let headers = [{name: 'Content-Type', value: 'application/json'}];
