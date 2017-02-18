@@ -74,6 +74,11 @@ server.checkHeader = function (req) {
     return req.get('Content-Type') === 'application/json';
 };
 
+server.removeUnactivatedUsers = function () {
+    const userService = require('./services/userService');
+    setTimeout(userService.removeUnactivatedUsers(server.tables.user, server.tables.unactivatedUser), 100);
+};
+
 server.connectionInfo = function () {
     console.log("Server started");
 };
@@ -120,8 +125,6 @@ server.start = function () {
     const mailer = require('express-mailer');
     server.connection = new this.Sequelize(
         this.database.uri,
-        /*this.database.user,
-         this.database.password,*/
         {
             host: this.host,
             dialect: this.database.type,
@@ -146,7 +149,8 @@ server.start = function () {
     });
     server.app.set('views', __dirname + '\\views');
     server.app.set('view engine', 'pug');
-    this.setRoutes(server.app);
+    server.setRoutes(server.app);
+    server.removeUnactivatedUsers();
 };
 
 module.exports = server;

@@ -103,9 +103,10 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
     }
 };
 
-userService.generateActivationLink = function (unactivatedUserTable){
+userService.generateActivationLink = function (unactivatedUserTable) {
     return new Promise(function (resolve) {
         const stringGenerator = require('randomstring');
+
         function checkLink() {
             let link = stringGenerator.generate(10);
             unactivatedUserTable.findOne({where: {activationLink: link}}).then(function (unactivatedUser) {
@@ -117,8 +118,32 @@ userService.generateActivationLink = function (unactivatedUserTable){
                 }
             });
         }
+
         checkLink();
     });
+};
+
+userService.removeUnactivatedUsers = function (userTable, unactivatedUserTable) {
+    return function () {
+        unactivatedUserTable.findAll().then(function (unactivatedUsers) {
+            let date = new Date();
+            unactivatedUsers.forEach(function (unactivatedUser) {
+                console.log('Checking for link ' + unactivatedUser.activationLink);
+                //check if one day passed
+                let diff = date.getTime() - unactivatedUser.createdAt.getTime();
+                if (diff >= (1000 * 60 * 60 * 24)) {
+                    unactivatedUserTable.destroy({where: {id: unactivatedUser.id}}).then(function () {
+                        userTable.destroy({
+                            where: {id: unactivatedUser.userId}
+                        });
+                    });
+                }
+            });
+            //set timeout to one hour
+            setTimeout(userService.removeUnactivatedUsers(userTable, unactivatedUserTable),
+                1000 * 60 * 60);
+        })
+    }
 };
 
 module.exports = userService;
