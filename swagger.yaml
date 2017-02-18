@@ -1,0 +1,159 @@
+swagger: '2.0'
+host: 'coollections.herokuapp.com'
+basePath: '/rest'
+schemes:
+  - 'https'
+consumes:
+  - 'application/json'
+produces:
+  - 'application/json'
+
+info:
+  version: "0.0.3"
+  title: CooLLections API
+  description: |
+    CooLLections is an application for people with inner need to catalog their
+    things. They will be able to send all information they want to catalogs
+    created in this application and to see it in very pleasent way.
+  contact:
+    name: Kamil Malinowski
+    email: kamillo1000@gmail.com
+
+paths:
+  /users:
+    get:
+      description: |
+        Get users information.
+      parameters:
+        - name: whose
+          in: query
+          description: |
+            Whose information has to be provided.
+          required: true
+          type: string
+          default: friends
+          enum:
+            - all
+            - friends
+      responses:
+        200:
+          description: Everything goes OK. Returning list of users.
+          schema:
+            properties:
+              users:
+                type: array
+                items:
+                  $ref: '#/definitions/User'
+    post:
+      description: |
+        Create new user.
+        If user with this username or email doesn't exists.
+      parameters:
+        - name: user
+          in: body
+          description: new user
+          required: true
+          schema:
+            $ref: '#/definitions/NewUser'
+      responses:
+        200:
+          description: Successful response. E-mail with activation link was sent on user's e-mail.
+          schema:
+            $ref: '#/definitions/Message'
+        400:
+          description: Body isn't JSON.
+          schema:
+            $ref: '#/definitions/Message'
+        401:
+          description: Something came wrong. More info in message.
+          schema:
+            $ref: '#/definitions/Message'
+  /users/{username}:
+    put:
+      description: Edit existing user.
+      parameters:
+        - name: username
+          in: path
+          description: Username of edited user.
+          required: true
+          type: string
+        - name: user's settings
+          in: body
+          description: |
+            New user's settings. If some of them are not provided,
+            there will not be chaned.
+          required: true
+          schema:
+            $ref: "#/definitions/NewUser"
+      responses:
+       200:
+        description: Everything went OK.
+        schema:
+          $ref: '#/definitions/Message'
+  /users/activate:
+    post:
+      description: Activation of an account.
+      parameters:
+        - name: activation link
+          in: body
+          description: Activation link from e-mail.
+          required: true
+          schema:
+            $ref: '#/definitions/ActivationLink'
+      responses:
+        200:
+          description: Account was successfully activated.
+          schema:
+            $ref: '#/definitions/Message'
+        400:
+          description: Body isn't JSON.
+          schema:
+            $ref: '#/definitions/Message'
+        401:
+          description: Something came wrong. More info in message.
+          schema:
+            $ref: '#/definitions/Message'
+    
+
+definitions:
+  NewUser:
+    description: Model of new user
+    properties:
+      username:
+        type: string
+        description: Username of new user
+      password:
+        type: string
+        description: Password of new user
+      name:
+        type: string
+        description: Name of new user
+      email:
+        type: string
+        description: Email of new user
+  User:
+    description: Model of user
+    properties:
+      username:
+        type: string
+        description: Username 
+      name:
+        type: string
+        description: Name of user
+      email:
+        type: string
+        description: Email of user
+  ActivationLink:
+    description: Activation link from e-mail.
+    properties:
+      link:
+        type: string
+        description: Activation link
+    required:
+      - link
+  Message:
+    description: Message from server
+    properties:
+      message:
+        type: string
+        description: Message from server
