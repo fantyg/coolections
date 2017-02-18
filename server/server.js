@@ -36,23 +36,36 @@ server.postUser = function (req, res) {
         server.sendJsonRequired(res);
         return;
     }
-    /*let body = req.body;*/
     const userService = require('./services/userService');
     userService.create(req.body, server.connection, server.tables.user,
         server.tables.unactivatedUser, server, server.response(res));
 };
 
-server.routes = [
-    {
-        route: '/rest/users',
-        call: server.postUser,
-        method: 'POST'
+server.activateUser = function (req, res) {
+    if (!server.checkHeader(req)) {
+        server.sendJsonRequired(res);
+        return;
     }
-];
+    const userService = require('./services/userService');
+    userService.activateUser(req.body, server.tables.unactivatedUser)
+        .then(function (result) {
+            server.response(res)(result.message, result.headers, result.status);
+        }).catch(function (error) {
+        console.log(error);
+    });
+};
+
+server.routes = require('./config/routes')(server);
 
 server.response = function (res) {
     return function (message, headers, status) {
+        console.log('status: ' + status);
+        console.log('message: ' + message);
+        console.log('headers: ' + headers.toString());
         headers = headers || [];
+        if (typeof message !== 'string') {
+            throw new TypeError('message must be string');
+        }
         res.status(status);
         headers.forEach(function (header) {
             res.setHeader(header.name, header.value);
@@ -76,7 +89,7 @@ server.checkHeader = function (req) {
 
 server.removeUnactivatedUsers = function () {
     const userService = require('./services/userService');
-    setTimeout(userService.removeUnactivatedUsers(server.tables.user, server.tables.unactivatedUser), 100);
+    setTimeout(userService.removeUnactivatedUsers(server.tables.user, server.tables.unactivatedUser), 10000);
 };
 
 server.connectionInfo = function () {

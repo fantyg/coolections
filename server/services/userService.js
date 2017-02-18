@@ -146,4 +146,34 @@ userService.removeUnactivatedUsers = function (userTable, unactivatedUserTable) 
     }
 };
 
+userService.activateUser = function (body, unactivatedUserTable) {
+    return new Promise(function (resolve) {
+        let result = {};
+        result.headers = [{name: 'Content-Type', value: 'application/json'}];
+        if (!body.link) {
+            result.message = JSON.stringify({message: 'link is required'});
+            result.status = 401;
+            resolve(result);
+            return;
+        }
+        unactivatedUserTable.findOne({where: {activationLink: body.link}}).then(function (unactivatedUser) {
+            if (!unactivatedUser) {
+                result.message = JSON.stringify({message: 'wrong link'});
+                result.status = 401;
+                resolve(result);
+                return;
+            }
+            unactivatedUserTable.destroy({where: {id: unactivatedUser.id}}).then( function () {
+                result.message = JSON.stringify({message: 'account activated'});
+                result.status = 200;
+                resolve(result);
+            }).catch(function (error) {
+                console.log(error);
+            });
+        }).catch(function (error) {
+            console.log(error);
+        });
+    });
+};
+
 module.exports = userService;
