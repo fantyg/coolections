@@ -26,6 +26,7 @@ userService.create = function (user, connection, userTable, unactivatedUserTable
         if (right) {
             const hash = require('password-hash');
             user.password = hash.generate(user.password);
+            user.username = user.username.toLowerCase();
             userTable.create(user);
             userTable.sync().then(function () {
                 userTable.findOne({where: {username: user.username}}).then(function (user) {
@@ -82,6 +83,36 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
             callback(false);
         }
     });
+    let passwordRegex = /^(?=.*\d)(?=.*[a-z])[0-9a-zA-Z]{8,}$/;
+    if (validRequirements) {
+        if (!passwordRegex.test(user.password)) {
+            let message = {message: 'password should has at least 8 characters and 1 digit'};
+            send(JSON.stringify(message), headers, 401);
+            validRequirements = false;
+            callback(false);
+            return;
+        }
+    }
+    let emailRegex = /^.+@.+\..+$/;
+    if (validRequirements) {
+        if (!emailRegex.test(user.email)) {
+            let message = {message: 'wrong email'};
+            send(JSON.stringify(message), headers, 401);
+            validRequirements = false;
+            callback(false);
+            return;
+        }
+    }
+    let usernameRegex = /^.{5,}$/;
+    if (validRequirements) {
+        if (!usernameRegex.test(user.username)) {
+            let message = {message: 'username should has at least 5 characters'};
+            send(JSON.stringify(message), headers, 401);
+            validRequirements = false;
+            callback(false);
+            return;
+        }
+    }
     if (validRequirements) {
         userService.usernameExists(user.username, table, function (exists) {
             if (exists) {

@@ -136,6 +136,7 @@ server.start = function () {
     server.app = express();
     const bodyParser = require('body-parser');
     const mailer = require('express-mailer');
+    const session = require('express-session');
     server.connection = new this.Sequelize(
         this.database.uri,
         {
@@ -162,6 +163,12 @@ server.start = function () {
     });
     server.app.set('views', __dirname + '\\views');
     server.app.set('view engine', 'pug');
+    server.app.use(session({
+        secret: process.env.SECRET || 'defSec',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {secure: true}
+    }));
     server.setRoutes(server.app);
     server.removeUnactivatedUsers();
 };
