@@ -13,6 +13,11 @@ let routes = function (server) {
             route: '/rest/users/activate',
             call: server.activateUser,
             method: 'POST'
+        },
+        {
+            route: '/rest/users/auth',
+            call: server.authenticateUser,
+            method: 'POST'
         }
     ];
 };

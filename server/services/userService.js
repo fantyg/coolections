@@ -22,11 +22,11 @@ userService.sendRegistrationEmail = function (user, link, server) {
 userService.create = function (user, connection, userTable, unactivatedUserTable, server, callback) {
     console.log("Creation of user.");
     let headers = [{name: 'Content-Type', value: 'application/json'}];
+    user.username = user.username.toLowerCase();
     this.checkNewUser(user, headers, userTable, callback, function (right) {
         if (right) {
             const hash = require('password-hash');
             user.password = hash.generate(user.password);
-            user.username = user.username.toLowerCase();
             userTable.create(user);
             userTable.sync().then(function () {
                 userTable.findOne({where: {username: user.username}}).then(function (user) {
@@ -71,14 +71,14 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
         }
         if (typeof user[requirement] === 'undefined') {
             let message = {message: requirement + ' is required'};
-            send(JSON.stringify(message), headers, 401);
+            send(JSON.stringify(message), headers, 400);
             validRequirements = false;
             callback(false);
             return;
         }
         if (user[requirement] === '') {
             let message = {message: requirement + ' cannot be empty'};
-            send(JSON.stringify(message), headers, 401);
+            send(JSON.stringify(message), headers, 400);
             validRequirements = false;
             callback(false);
         }
@@ -87,7 +87,7 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
     if (validRequirements) {
         if (!passwordRegex.test(user.password)) {
             let message = {message: 'password should has at least 8 characters and 1 digit'};
-            send(JSON.stringify(message), headers, 401);
+            send(JSON.stringify(message), headers, 400);
             validRequirements = false;
             callback(false);
             return;
@@ -97,7 +97,7 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
     if (validRequirements) {
         if (!emailRegex.test(user.email)) {
             let message = {message: 'wrong email'};
-            send(JSON.stringify(message), headers, 401);
+            send(JSON.stringify(message), headers, 400);
             validRequirements = false;
             callback(false);
             return;
@@ -107,7 +107,7 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
     if (validRequirements) {
         if (!usernameRegex.test(user.username)) {
             let message = {message: 'username should has at least 5 characters'};
-            send(JSON.stringify(message), headers, 401);
+            send(JSON.stringify(message), headers, 400);
             validRequirements = false;
             callback(false);
             return;
@@ -117,14 +117,14 @@ userService.checkNewUser = function (user, headers, table, send, callback) {
         userService.usernameExists(user.username, table, function (exists) {
             if (exists) {
                 let message = {message: 'user with this username already exists'};
-                send(JSON.stringify(message), headers, 401);
+                send(JSON.stringify(message), headers, 409);
                 callback(false);
                 return
             }
             userService.emailExists(user.email, table, function (exists) {
                 if (exists) {
                     let message = {message: 'user with this email already exists'};
-                    send(JSON.stringify(message), headers, 401);
+                    send(JSON.stringify(message), headers, 409);
                     callback(false);
                     return;
                 }
@@ -183,18 +183,18 @@ userService.activateUser = function (body, unactivatedUserTable) {
         result.headers = [{name: 'Content-Type', value: 'application/json'}];
         if (!body.link) {
             result.message = JSON.stringify({message: 'link is required'});
-            result.status = 401;
+            result.status = 400;
             resolve(result);
             return;
         }
         unactivatedUserTable.findOne({where: {activationLink: body.link}}).then(function (unactivatedUser) {
             if (!unactivatedUser) {
                 result.message = JSON.stringify({message: 'wrong link'});
-                result.status = 401;
+                result.status = 400;
                 resolve(result);
                 return;
             }
-            unactivatedUserTable.destroy({where: {id: unactivatedUser.id}}).then( function () {
+            unactivatedUserTable.destroy({where: {id: unactivatedUser.id}}).then(function () {
                 result.message = JSON.stringify({message: 'account activated'});
                 result.status = 200;
                 resolve(result);
@@ -203,6 +203,55 @@ userService.activateUser = function (body, unactivatedUserTable) {
             });
         }).catch(function (error) {
             console.log(error);
+        });
+    });
+};
+
+userService.authenticateUser = function (body, session, userTable, unactivatedUserTable) {
+    return new Promise(function (resolve) {
+        let result = {};
+        result.headers = [{name: 'Content-Type', value: 'application/json'}];
+        if (typeof body.username !== 'string') {
+            result.message = JSON.stringify({message: 'username has to be string'});
+            result.status = 400;
+            resolve(result);
+            return;
+        }
+        if (typeof body.password !== 'string') {
+            result.message = JSON.stringify({message: 'password has to be string'});
+            result.status = 400;
+            resolve(result);
+            return;
+        }
+        body.username = body.username.toLowerCase();
+        userTable.findOne({where: {username: body.username}}).then(function (user) {
+            if (!user) {
+                result.message = JSON.stringify({message: 'wrong username or password'});
+                result.status = 403;
+                resolve(result);
+                return;
+            }
+            unactivatedUserTable.findOne({where: {userId: user.id}}).then(function (unactivatedUser) {
+                if (unactivatedUser) {
+                    result.message = JSON.stringify({message: 'account unactivated'});
+                    result.status = 403;
+                    resolve(result);
+                    return
+                }
+                const passwordHash = require('password-hash');
+                if (!passwordHash.verify(body.password, user.password)) {
+                    result.message = JSON.stringify({message: 'wrong username or password'});
+                    result.status = 403;
+                    resolve(result);
+                    return;
+                }
+                session.username = user.username;
+                session.role = user.role;
+                session.name = user.name;
+                result.message = JSON.stringify({message: 'successfully authenticated'});
+                result.status = 200;
+                resolve(result);
+            })
         });
     });
 };

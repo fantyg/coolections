@@ -55,6 +55,20 @@ server.activateUser = function (req, res) {
     });
 };
 
+server.authenticateUser = function (req, res) {
+    const userService = require('./services/userService');
+    if (!server.checkHeader(req)) {
+        server.sendJsonRequired(res);
+        return;
+    }
+    userService.authenticateUser(req.body, req.session, server.tables.user, server.tables.unactivatedUser)
+        .then(function (result) {
+            server.response(res)(result.message, result.headers, result.status);
+        }).catch(function (err) {
+            console.error(err);
+    })
+};
+
 server.routes = require('./config/routes')(server);
 
 server.response = function (res) {
