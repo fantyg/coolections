@@ -16,7 +16,7 @@ let server = {
 server.Sequelize = require('sequelize');
 
 server.models = require('./config/models')(server.Sequelize);
-
+server.router = require('./config/router');
 server.tables = [];
 
 server.getHomePage = function (req, res) {
@@ -29,76 +29,6 @@ server.getUserPage = function (req, res) {
     console.log('Get logged page.');
     console.log('Req: ');
     res.send('GET request to logged page.');
-};
-
-server.postUser = function (req, res) {
-    if (!server.checkHeader(req)) {
-        server.sendJsonRequired(res);
-        return;
-    }
-    const userService = require('./services/userService');
-    userService.create(req.body, server.connection, server.tables.user,
-        server.tables.unactivatedUser, server, server.response(res));
-};
-
-server.activateUser = function (req, res) {
-    if (!server.checkHeader(req)) {
-        server.sendJsonRequired(res);
-        return;
-    }
-    const userService = require('./services/userService');
-    userService.activateUser(req.body, server.tables.unactivatedUser)
-        .then(function (result) {
-            server.response(res)(result.message, result.headers, result.status);
-        }).catch(function (error) {
-        console.log(error);
-    });
-};
-
-server.authenticateUser = function (req, res) {
-    const userService = require('./services/userService');
-    if (!server.checkHeader(req)) {
-        server.sendJsonRequired(res);
-        return;
-    }
-    userService.authenticateUser(req.body, req.session, server.tables.user, server.tables.unactivatedUser)
-        .then(function (result) {
-            server.response(res)(result.message, result.headers, result.status);
-        }).catch(function (err) {
-            console.error(err);
-    })
-};
-
-server.routes = require('./config/routes')(server);
-
-server.response = function (res) {
-    return function (message, headers, status) {
-        console.log('status: ' + status);
-        console.log('message: ' + message);
-        console.log('headers: ' + headers.toString());
-        headers = headers || [];
-        if (typeof message !== 'string') {
-            throw new TypeError('message must be string');
-        }
-        res.status(status);
-        headers.forEach(function (header) {
-            res.setHeader(header.name, header.value);
-        });
-        res.send(message);
-    };
-};
-
-server.sendJsonRequired = function (res) {
-    res.status(400);
-    let error = {
-        message: 'JSON is required to communicate with server.'
-    };
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(error));
-};
-
-server.checkHeader = function (req) {
-    return req.get('Content-Type') === 'application/json';
 };
 
 server.removeUnactivatedUsers = function () {
@@ -123,26 +53,29 @@ server.createModels = function () {
     server.connection.sync();
 };
 
-server.setRoutes = function (app) {
-    this.routes.forEach(function (route) {
+server.setRoutes = function () {
+    this.router.routes.forEach(function (route) {
         switch (route.method) {
             case 'GET':
-                app.get(route.route, route.call);
+                server.app.get(route.route, route.call);
                 break;
             case 'POST':
                 //noinspection JSUnresolvedFunction
-                app.post(route.route, route.call);
+                server.app.post(route.route, route.call);
                 break;
             case 'PUT':
                 //noinspection JSUnresolvedFunction
-                app.put(route.route, route.call);
+                server.app.put(route.route, route.call);
                 break;
             case 'DELETE':
-                app.delete(route.route, route.call);
+                server.app.delete(route.route, route.call);
+                break;
+            default:
+                console.error('unrecognized method');
                 break;
         }
     });
-    app.listen(this.port, this.connectionInfo);
+    server.app.listen(this.port, this.connectionInfo);
 };
 
 server.start = function () {
@@ -183,7 +116,8 @@ server.start = function () {
         saveUninitialized: false,
         cookie: {secure: true}
     }));
-    server.setRoutes(server.app);
+    server.router.init(server);
+    server.setRoutes();
     server.removeUnactivatedUsers();
 };
 
