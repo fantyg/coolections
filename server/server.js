@@ -114,7 +114,7 @@ server.start = function () {
         secret: process.env.SECRET || 'defSec',
         resave: false,
         saveUninitialized: false,
-        cookie: {secure: true}
+        cookie: {secure: false, maxAge: process.env.COOKIE_TIME || 1000 * 60 * 15}
     }));
     server.router.init(server);
     server.setRoutes();

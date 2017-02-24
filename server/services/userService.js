@@ -256,4 +256,56 @@ userService.authenticateUser = function (body, session, userTable, unactivatedUs
     });
 };
 
+userService.getSpecificUser = function (username, userTable, role) {
+    return new Promise(function (resolve) {
+        console.log('role: ' + role);
+        let result = {};
+        result.headers = [{name: 'Content-Type', value: 'application/json'}];
+        if (role === 'user' || role === 'none') {
+            userTable.findOne({attributes: ['username'], where: {username: username}}).then(function (user) {
+                result.message = JSON.stringify(user);
+                result.status = 200;
+                resolve(result);
+            });
+        } else if (role === 'owner' || role === 'admin') {
+            userTable.findOne({
+                attributes: ['username', 'name', 'email', 'role'],
+                where: {username: username}
+            }).then(function (user) {
+                result.message = JSON.stringify(user);
+                result.status = 200;
+                resolve(result);
+            });
+        }
+    });
+};
+
+userService.getAllUsers = function (witch, userTable, role) {
+    return new Promise(function (resolve) {
+        let result = {};
+        result.headers = [{name: 'Content-Type', value: 'application/json'}];
+        if (witch === 'all') {
+            if (role === 'admin') {
+                userTable.findAll({
+                    attributes: ['username', 'name', 'email', 'role']
+                }).then(function (allUsers) {
+                    result.message = JSON.stringify(allUsers);
+                    result.status = 200;
+                    resolve(result);
+                });
+            } else {
+                userTable.findAll({
+                    attributes: ['username']
+                }).then(function (allUsers) {
+                    result.message = JSON.stringify(allUsers);
+                    result.status = 200;
+                    resolve(result);
+                });
+            }
+        } else {
+            result.message = JSON.stringify({message: 'witch should be set to: all or friends'});
+        }
+    });
+};
+
 module.exports = userService;

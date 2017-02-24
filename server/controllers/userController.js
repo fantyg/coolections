@@ -50,4 +50,44 @@ userController.authenticateUser = function (req, res) {
     })
 };
 
+userController.checkRole = function (role, username, reqUsername) {
+    if (!role || !username) {
+        return 'none';
+    }
+    if (username === reqUsername) {
+        return 'owner';
+    }
+    return role;
+};
+
+userController.getSpecificUser = function (req, res) {
+    if (!req.params.username) {
+        let message = {message: "username required"};
+        let headers = [{name: 'Content-Type', value: 'application/json'}];
+        userController.responseService.response(res)(JSON.stringify(message), headers, 400);
+        return;
+    }
+    let sess = req.session;
+    let role = userController.checkRole(sess.role, sess.username, req.params.username);
+    userController.userService.getSpecificUser(req.params.username, userController.server.tables.user, role).then(
+        function (result) {
+            userController.responseService.response(res)(result.message, result.headers, result.status);
+        }
+    ).catch(function (error) {
+        console.error(error);
+    });
+};
+
+userController.getAllUsers = function (req, res) {
+    let witch = req.query.witch || 'all';
+    let sess = req.session;
+    let role = userController.checkRole(sess.role, sess.username);
+    userController.userService.getAllUsers(witch, userController.server.tables.user, role)
+        .then(function (result) {
+            userController.responseService.response(res)(result.message, result.headers, result.status);
+        }).catch(function (error) {
+            console.error(error);
+    })
+};
+
 module.exports = userController;
